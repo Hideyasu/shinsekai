@@ -7,6 +7,7 @@
 - @puts
 - @masudayuuma
 - @syarasyoujyu
+　よろしく！
 - @deforu
 
 ## Creating a project
