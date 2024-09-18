@@ -1,8 +1,8 @@
 <script>
-	import Counter from './Counter.svelte';
 	import welcome from '$lib/images/svelte-welcome.webp';
 	import welcome_fallback from '$lib/images/svelte-welcome.png';
 	import Speech from './Speech.svelte';
+	import AI_interface from './AI_interface.svelte';
 </script>
 
 <svelte:head>
@@ -27,6 +27,7 @@
 	</h2>
 
 	<Speech />
+	<AI_interface />
 </section>
 
 <style>
