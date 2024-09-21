@@ -2,9 +2,9 @@ name: deploy-to-github-pages
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ['main']
   pull_request:
-    branches: [ "main" ]
+    branches: ['main']
   workflow_dispatch:
 
 jobs:
@@ -16,15 +16,17 @@ jobs:
 
       - name: setup node.js
         uses: actions/setup-node@v3.6.0
-      
+
       # package.jsonの内容でパッケージインストール
       - name: setup app env
         run: npm i
-      
+
       # ビルド実行、静的リソースを作る
       - name: build static resources
         run: npm run build
-          
+        env:
+          VITE_SKY_WAY_AUTH_TOKEN: ${{ secrets.VITE_SKY_WAY_AUTH_TOKEN }}
+
       # GitHub Pagesにデプロイする
       - name: deploy to github pages
         uses: peaceiris/actions-gh-pages@v3
