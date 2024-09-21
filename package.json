@@ -31,6 +31,10 @@
 	},
 	"type": "module",
 	"dependencies": {
+		"@skyway-sdk/core": "^1.9.2",
+		"@skyway-sdk/room": "^1.9.2",
+		"@skyway-sdk/sfu-bot": "^1.9.2",
+		"@skyway-sdk/token": "^1.6.2",
 		"openai": "^4.62.1"
 	}
 }

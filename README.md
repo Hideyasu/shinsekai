@@ -11,6 +11,19 @@
 - @deforu
   よろしくお願いします
 
+## init
+
+- .env.example をコピーして、.env を作成する
+- VITE_SKY_WAY_APP_ID, VITE_SKY_WAY_SECRET_KEY は各自設定してください
+- http://localhost:5173/generateSkyWayAuthToken にアクセスし、VITE_SKY_WAY_AUTH_TOKENを作成する
+
+```bash
+$ npm i
+$ cp .env.example .env
+$ npm run dev
+# access to http://localhost:5173/generateSkyWayAuthToken
+```
+
 ## Creating a project
 
 If you're seeing this, you've probably already done this step. Congrats!
