@@ -14,7 +14,7 @@
 </script>
 
 <svelte:head>
-  <title>Video Call App</title>
+  <title>天才たちの恋愛頭脳戦通話アプリ</title>
   <meta name="description" content="SvelteKit video call application" />
 </svelte:head>
 
