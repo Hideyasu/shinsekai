@@ -1,5 +1,5 @@
 import adapter from '@sveltejs/adapter-static'
-const dev = process.argv.include('dev');
+const dev = process.argv.includes('dev');
 
 /** @type {import('@sveltejs/kit').Config} */
 const config = {
@@ -10,7 +10,10 @@ const config = {
 		adapter: adapter(),
 		paths: {
             base: dev ? '' : '/shinsekai'
-        }
+        },
+		prerender: {
+			handleHttpError: 'warn' // エラーを警告として扱う
+		},
 	}
 };
 
