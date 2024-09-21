@@ -1,5 +1,5 @@
 <script>
-  import { Mic, MicOff, Phone } from 'lucide-svelte'
+  import { Mic, MicOff, Phone } from 'lucide-svelte';
   import { onMount } from 'svelte';
   import { SkyWayContext, SkyWayRoom, SkyWayStreamFactory } from "@skyway-sdk/room";
 
@@ -13,20 +13,22 @@
 
   function toggleMic() {
     isMicOn = !isMicOn;
+    if (audioStream) {
+      audioStream.track.enabled = isMicOn;
+    }
   }
 
   let localVideo;
-  let remoteMediaArea;
   let cartoonFrameDivs = [];
   let myId = '';
   let room;
   let context;
-  let buttonArea;
   let authToken;
   let me;
+  let audioStream;
+  let videoStream;
 
   onMount(async () => {
-    buttonArea = document.getElementById("button-area");
     cartoonFrameDivs = Array.from(document.getElementsByClassName('cartoon-frame'));
 
     if (typeof window !== 'undefined' && window.RTCPeerConnection) {
@@ -34,19 +36,21 @@
     }
   });
 
-  async function joinRoom() {    
-    // ルームに参加
+  async function joinRoom() {
+    // Join the room
     context = await SkyWayContext.Create(authToken);
     room = await SkyWayRoom.FindOrCreate(context, {
-        type: "p2p",
-        name: 'love_is_war',
+      type: "p2p",
+      name: 'love_is_war',
     });
-    
+
     me = await room.join();
     myId = me.id;
 
-    // ストリームを取得
+    // Get streams
     const { audio, video } = await SkyWayStreamFactory.createMicrophoneAudioAndCameraStream();
+    audioStream = audio;
+    videoStream = video;
     video.attach(localVideo);
     await localVideo.play();
 
@@ -59,7 +63,7 @@
       const { stream } = await me.subscribe(publication.id);
 
       let newMediaVideo, newMediaAudio;
-      // 空いている div にストリームを表示
+      // Display stream in an empty panel
       const emptyDiv = cartoonFrameDivs.find(div => div.childElementCount === 0);
       if (!emptyDiv) return;
       switch (stream.track.kind) {
@@ -67,39 +71,26 @@
           newMediaVideo = document.createElement('video');
           newMediaVideo.playsInline = true;
           newMediaVideo.autoplay = true;
+          newMediaVideo.className = 'w-full h-full object-cover';
           stream.attach(newMediaVideo);
-          emptyDiv.appendChild(newMediaVideo); // ビデオを追加
+          emptyDiv.appendChild(newMediaVideo); // Add video
 
           newMediaAudio = document.createElement('audio');
-          newMediaAudio.controls = false;
           newMediaAudio.autoplay = true;
           stream.attach(newMediaAudio);
-          emptyDiv.appendChild(newMediaAudio); // ビデオの下にオーディオを追加
+          // Audio does not need to be visible
           break;
         case 'audio':
-          // newMediaAudio = document.createElement('audio');
-          // newMediaAudio.controls = true;
-          // newMediaAudio.autoplay = true;
-          // stream.attach(newMediaAudio);
-          // emptyDiv.appendChild(newMediaAudio); // ビデオの下にオーディオを追加
-
-          // // videoタグがまだない場合、videoタグを追加
-          // if (emptyDiv.querySelector('video') === null) {
-          //   newMediaVideo = document.createElement('video');
-          //   newMediaVideo.playsInline = true;
-          //   newMediaVideo.autoplay = true;
-          //   stream.attach(newMediaVideo);
-          //   emptyDiv.appendChild(newMediaVideo); // ビデオを追加
-          // }
+          // Handle audio-only streams if needed
           break;
         default:
           return;
       }
     };
 
-    // 既存の公開ストリームを購読して表示
+    // Subscribe and display existing published streams
     room.publications.forEach(subscribeAndAttach);
-    // 新しいストリームが公開されたときに購読して表示
+    // Subscribe to new streams
     room.onStreamPublished.add((e) => subscribeAndAttach(e.publication));
   }
 
@@ -107,10 +98,18 @@
     if (me) {
       await me.leave();
       await room.dispose();
-  
+
       myId = "";
-      buttonArea.replaceChildren();
       cartoonFrameDivs.forEach(div => div.replaceChildren());
+
+      if (audioStream) {
+        audioStream.track.stop();
+        audioStream = null;
+      }
+      if (videoStream) {
+        videoStream.track.stop();
+        videoStream = null;
+      }
     }
   }
 </script>
@@ -120,42 +119,72 @@
   <meta name="description" content="SvelteKit video call application" />
 </svelte:head>
 
-<section class="flex flex-col items-center justify-center min-h-screen">
-  <p>ID: <span id="my-id">{myId}</span></p>
-  <div id="remote-media-area" bind:this={remoteMediaArea}></div>
-  <div id="button-area" bind:this={buttonArea}></div>
+<section class="min-h-screen bg-gray-100">
+  <p class="text-center">ID: <span id="my-id">{myId}</span></p>
 
-  <div class="grid grid-cols-4 gap-4 mb-8">
-    <div class="w-70 h-36 bg-gray-400 rounded-lg"></div>
-    <div class="border-8 border-black w-80 h-60 ">
-      <video bind:this={localVideo} width="400px" muted playsinline></video>
+  <article class="flex flex-wrap font-comic-sans p-[5vmin] mx-64 ">
+    <!-- Local video -->
+    <div class="panel flex-grow basis-[400px]">
+      <video bind:this={localVideo} class="w-full h-full object-cover" muted playsinline></video>
     </div>
-    <div class="border-8 border-black w-80 h-60 cartoon-frame"></div>
-    <div class="w-70 h-36 bg-gray-400 rounded-lg"></div>
-    <div class="w-70 h-36 bg-gray-400 rounded-lg"></div>
-    <div class="border-8 border-black w-80 h-60 cartoon-frame"></div>
-    <div class="border-8 border-black w-80 h-60 cartoon-frame"></div>
-    <div class="w-70 h-36 bg-gray-400 rounded-lg"></div>
-  </div>
-  
-  <div class="flex space-x-4">
+    <!-- Remote videos -->
+    <div class="panel flex-grow basis-[500px] cartoon-frame"></div>
+    <div class="panel flex-grow basis-[500px] cartoon-frame"></div>
+    <div class="panel flex-grow basis-[400px] cartoon-frame"></div>
+    <!-- <div class="panel flex-grow basis-[300px] cartoon-frame"></div> -->
+  </article>
+
+  <div class="flex space-x-4 justify-center mt-4">
     <button
-      class="w-12 h-12 rounded-full border-2 border-black flex items-center justify-center bg-gray-200"
+      class="w-16 h-16 rounded-full border-2 border-black flex items-center justify-center bg-gray-200"
       on:click={toggleMic}
     >
       {#if isMicOn}
-        <Mic class="w-6 h-6" />
+        <Mic class="w-8 h-8" />
       {:else}
-        <MicOff class="w-6 h-6" />
+        <MicOff class="w-8 h-8" />
       {/if}
     </button>
     <button
-      class="w-12 h-12 rounded-full border-2 border-black flex items-center justify-center transition-colors duration-300"
+      class="w-16 h-16 rounded-full border-2 border-black flex items-center justify-center transition-colors duration-300"
       class:bg-[#57EEF8]={!isRed}
       class:bg-[#EE1971]={isRed}
       on:click={togglePhone}
     >
-      <Phone class="w-6 h-6" />
+      <Phone class="w-8 h-8" />
     </button>
   </div>
 </section>
+
+<style lang="postcss">
+  @tailwind base;
+  @tailwind components;
+  @tailwind utilities;
+
+  @layer components {
+    .panel {
+      @apply bg-white border-4 border-black shadow-md inline-block h-[320px] m-[1vmin] overflow-hidden relative;
+    }
+    .text {
+      @apply bg-white border-2 border-black m-0 py-[3px] px-[10px];
+    }
+    .top-left {
+      @apply absolute -left-[6px] -top-[2px] transform -skew-x-12;
+    }
+    .bottom-right {
+      @apply absolute -bottom-[2px] -right-[6px] transform -skew-x-12;
+    }
+    .speech {
+    @apply absolute bg-white border-2 border-black rounded-xl inline-block m-2 py-2 px-4 right-[0px];
+}
+
+    .speech::before {
+      content: "";
+      @apply border-[12px] border-transparent border-l-black border-t-black absolute -bottom-[24px] left-[24px] h-0 w-0 transform -skew-x-12;
+    }
+    .speech::after {
+      content: "";
+      @apply border-[10px] border-transparent border-l-white border-t-white absolute -bottom-[19px] left-[27px] h-0 w-0 transform -skew-x-12;
+    }
+  }
+</style>
