@@ -7,9 +7,6 @@
   const secretKey = import.meta.env.VITE_SKY_WAY_AUTH_TOKEN ? import.meta.env.VITE_SKY_WAY_AUTH_TOKEN : '';
 
   onMount(async () => {  
-    console.log("env: ", import.meta.env.VITE_SKY_WAY_APP_ID)
-    console.log("env: ", import.meta.env.VITE_SKY_WAY_AUTH_TOKEN)
-    console.log("env: ", import.meta.env.VITE_SKY_WAY_SECRET_KEY)
     if (typeof window !== 'undefined' && window.RTCPeerConnection) {
       authToken = new SkyWayAuthToken({
         jti: uuidV4(),
