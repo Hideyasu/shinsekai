@@ -81,7 +81,19 @@
           // Audio does not need to be visible
           break;
         case 'audio':
-          // Handle audio-only streams if needed
+			// newMediaAudio = document.createElement('audio');
+          // newMediaAudio.controls = true;
+          // newMediaAudio.autoplay = true;
+          // stream.attach(newMediaAudio);
+          // emptyDiv.appendChild(newMediaAudio); // ビデオの下にオーディオを追加
+          // // videoタグがまだない場合、videoタグを追加
+          // if (emptyDiv.querySelector('video') === null) {
+          //   newMediaVideo = document.createElement('video');
+          //   newMediaVideo.playsInline = true;
+          //   newMediaVideo.autoplay = true;
+          //   stream.attach(newMediaVideo);
+          //   emptyDiv.appendChild(newMediaVideo); // ビデオを追加
+          // }
           break;
         default:
           return;
