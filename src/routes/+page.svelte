@@ -1,61 +1,52 @@
 <script>
-	import welcome from '$lib/images/svelte-welcome.webp';
-	import welcome_fallback from '$lib/images/svelte-welcome.png';
-	import Speech from './Speech.svelte';
-	import AI_interface from './AI_interface.svelte';
+  import { Mic, MicOff, Phone } from 'lucide-svelte'
+
+  let isRed = false;
+  let isMicOn = true;
+
+  function toggleColor() {
+    isRed = !isRed;
+  }
+
+  function toggleMic() {
+    isMicOn = !isMicOn;
+  }
 </script>
 
 <svelte:head>
-	<title>Home</title>
-	<meta name="description" content="Svelte demo app" />
+  <title>天才たちの恋愛頭脳戦通話アプリ</title>
+  <meta name="description" content="SvelteKit video call application" />
 </svelte:head>
 
-<section>
-	<h1>
-		<span class="welcome">
-			<picture>
-				<source srcset={welcome} type="image/webp" />
-				<img src={welcome_fallback} alt="Welcome" />
-			</picture>
-		</span>
-
-		to your new<br />SvelteKit app
-	</h1>
-
-	<h2>
-		try editing <strong>src/routes/+page.svelte</strong>
-	</h2>
-
-	<Speech />
-	<AI_interface />
+<section class="flex flex-col items-center justify-center min-h-screen">
+  <div class="grid grid-cols-4 gap-4 mb-8">
+	<div class="w-70 h-36 bg-gray-400 rounded-lg"></div>
+    <div class="border-8 border-black w-80 h-60"></div>
+    <div class="border-8 border-black w-80 h-60"></div>
+	<div class="w-70 h-36 bg-gray-400 rounded-lg"></div>
+	<div class="w-70 h-36 bg-gray-400 rounded-lg"></div>
+    <div class="border-8 border-black w-80 h-60"></div>
+    <div class="border-8 border-black w-80 h-60"></div>
+	<div class="w-70 h-36 bg-gray-400 rounded-lg"></div>
+  </div>
+  <div class="flex space-x-4">
+    <button
+      class="w-12 h-12 rounded-full border-2 border-black flex items-center justify-center bg-gray-200"
+      on:click={toggleMic}
+    >
+      {#if isMicOn}
+        <Mic class="w-6 h-6" />
+      {:else}
+        <MicOff class="w-6 h-6" />
+      {/if}
+    </button>
+    <button
+      class="w-12 h-12 rounded-full border-2 border-black flex items-center justify-center transition-colors duration-300"
+      class:bg-[#57EEF8]={!isRed}
+      class:bg-[#EE1971]={isRed}
+      on:click={toggleColor}
+    >
+      <Phone class="w-6 h-6" />
+    </button>
+  </div>
 </section>
-
-<style>
-	section {
-		display: flex;
-		flex-direction: column;
-		justify-content: center;
-		align-items: center;
-		flex: 0.6;
-	}
-
-	h1 {
-		width: 100%;
-	}
-
-	.welcome {
-		display: block;
-		position: relative;
-		width: 100%;
-		height: 0;
-		padding: 0 0 calc(100% * 495 / 2048) 0;
-	}
-
-	.welcome img {
-		position: absolute;
-		width: 100%;
-		height: 100%;
-		top: 0;
-		display: block;
-	}
-</style>
