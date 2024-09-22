@@ -21,12 +21,20 @@
 		{ bottom: '0', right: '0' }
 	];
 
+	// Helper function to get a random GPT response
+	function getRandomResponse() {
+		if (gptResponses.length === 0) return 'No response available';
+		const randomIndex = Math.floor(Math.random() * gptResponses.length);
+		return gptResponses[randomIndex];
+	}
+
 	function showMind(emotion) {
 		const position = positions[Math.floor(Math.random() * positions.length)];
 		const newEmotion = {
 			image: emotionImages[emotion],
 			position,
-			id: Date.now()
+			id: Date.now(),
+			response: getRandomResponse() // Add a random GPT response to each emotion
 		};
 		emotions = [...emotions, newEmotion];
 
@@ -34,7 +42,6 @@
 			emotions = emotions.filter((e) => e.id !== newEmotion.id);
 		}, 5000);
 	}
-
 	function togglePhone() {
 		isRed = !isRed;
 		isRed ? leaveRoom() : joinRoom();
@@ -60,6 +67,8 @@
 	let animationId;
 	let isSpeaking = false;
 	let threshold = 0.02;
+	let serverResponse = null; // サーバーのレスポンスデータを格納する変数
+	let gptResponses = []; // GPTレスポンスを格納する配列
 
 	// Variables for recording
 	let isRecording = false;
@@ -292,6 +301,8 @@
 
 			if (response.ok) {
 				const result = await response.json();
+				serverResponse = result.text; // "text"フィールドを格納
+				gptResponses = result.gpt_responses; // "gpt_responses"配列を格納
 				console.log('Server response:', result);
 				// Handle the response as needed
 			} else {
@@ -356,6 +367,7 @@
 
 <section class="min-h-screen bg-gray-100">
 	<p class="text-center">ID: <span id="my-id">{myId}</span></p>
+
 	<div class="flex space-x-4 justify-center">
 		<button
 			class="px-4 py-2 bg-yellow-400 text-black rounded-full"
@@ -385,6 +397,11 @@
 				style="top: {emotion.position.top}; left: {emotion.position.left}; right: {emotion.position
 					.right}; bottom: {emotion.position.bottom};"
 			>
+				<!-- GPT Response -->
+				<p class="gpt-response text-3xl bg-white p-1 rounded-md mb-1">
+					{emotion.response}
+				</p>
+				<!-- Emotion Image -->
 				<img src="src/lib/images/{emotion.image}" alt="Emotion Image" class="fade" />
 			</div>
 		{/each}
@@ -434,6 +451,9 @@
 	@layer components {
 		.panel {
 			@apply bg-white shadow-md inline-block h-[320px] m-[1vmin] overflow-hidden relative;
+		}
+		.gpt-response {
+			@apply bg-white border-2 border-black rounded p-2 mb-2;
 		}
 		.text {
 			@apply bg-white border-2 border-black m-0 py-[3px] px-[10px];
