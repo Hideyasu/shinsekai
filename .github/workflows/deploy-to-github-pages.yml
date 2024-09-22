@@ -26,6 +26,7 @@ jobs:
         run: npm run build
         env:
           VITE_SKY_WAY_AUTH_TOKEN: ${{ secrets.VITE_SKY_WAY_AUTH_TOKEN }}
+          VITE_BACKEND_URL: https://shinsekai-django.tunn.dev/
 
       # GitHub Pagesにデプロイする
       - name: deploy to github pages
