@@ -61,6 +61,11 @@
 	let isSpeaking = false;
 	let threshold = 0.02;
 
+	// Variables for recording
+	let isRecording = false;
+	let mediaRecorder;
+	let audioChunks = [];
+
 	let remoteUsers = {}; // Object to keep track of remote users
 
 	onMount(async () => {
@@ -207,6 +212,8 @@
 
 		const dataArray = new Float32Array(analyser.fftSize);
 
+		let previousIsSpeaking = false;
+
 		function analyze() {
 			analyser.getFloatTimeDomainData(dataArray);
 
@@ -220,10 +227,79 @@
 
 			isSpeaking = rms > threshold;
 
+			// Check for transition
+			if (isSpeaking && !previousIsSpeaking) {
+				console.log('開始'); // Started speaking
+				startRecording();
+			} else if (!isSpeaking && previousIsSpeaking) {
+				console.log('終了'); // Stopped speaking
+				stopRecordingAndSend();
+			}
+
+			previousIsSpeaking = isSpeaking;
+
 			animationId = requestAnimationFrame(analyze);
 		}
 
 		analyze();
+	}
+
+	function startRecording() {
+		if (isRecording) return;
+
+		isRecording = true;
+
+		// Use existing audioStream
+		mediaRecorder = new MediaRecorder(new MediaStream([audioStream.track]));
+
+		audioChunks = [];
+
+		mediaRecorder.ondataavailable = (event) => {
+			audioChunks.push(event.data);
+		};
+
+		mediaRecorder.onstop = () => {
+			console.log('送信');
+			const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+			sendAudio(audioBlob);
+			sendAudio;
+		};
+
+		mediaRecorder.start();
+	}
+
+	let silenceTimer;
+	function stopRecordingAndSend() {
+		if (!isRecording) return;
+
+		clearTimeout(silenceTimer);
+		silenceTimer = setTimeout(() => {
+			isRecording = false;
+			mediaRecorder.stop();
+		}, 1000); // Wait for 1000ms of silence before stopping
+	}
+
+	// Function to send audio to the backend
+	async function sendAudio(audioBlob) {
+		const formData = new FormData();
+		formData.append('audio', audioBlob, 'recording.webm');
+
+		try {
+			const response = await fetch('https://shinsekai-django.tunn.dev/api/v1/transcribe/', {
+				method: 'POST',
+				body: formData
+			});
+
+			if (response.ok) {
+				const result = await response.json();
+				console.log('Server response:', result);
+				// Handle the response as needed
+			} else {
+				console.error('Failed to send audio file');
+			}
+		} catch (error) {
+			console.error('An error occurred', error);
+		}
 	}
 
 	function setupRemoteAudioAnalysis(user, stream) {
@@ -249,7 +325,7 @@
 
 			let rms = Math.sqrt(sum / dataArray.length);
 
-			const threshold = 0.02; // Adjust threshold as needed
+			const threshold = 0.22; // Adjust threshold as needed
 
 			user.isSpeaking = rms > threshold;
 
@@ -270,6 +346,8 @@
 		analyze();
 	}
 </script>
+
+<!-- Rest of your existing HTML and CSS code -->
 
 <svelte:head>
 	<title>天才たちの恋愛頭脳戦通話アプリ</title>
